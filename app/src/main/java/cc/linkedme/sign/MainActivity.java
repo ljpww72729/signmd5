@@ -47,21 +47,28 @@ public class MainActivity extends AppCompatActivity {
 
     public void getSign(Context ctx) {
         try {
+            Signature[] signs;
             PackageInfo packageInfo;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                 packageInfo = ctx.getPackageManager().getPackageInfo(packageName.getText().toString(),
                         PackageManager.GET_SIGNING_CERTIFICATES);
+                signs = packageInfo.signingInfo.getApkContentsSigners();
             } else {
                 packageInfo = ctx.getPackageManager().getPackageInfo(packageName.getText().toString(),
                         PackageManager.GET_SIGNATURES);
+                signs = packageInfo.signatures;
             }
-            Signature[] signs = packageInfo.signatures;
-            Signature sign = signs[0];
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            md5.update(sign.toByteArray());
-            byte[] digest = md5.digest();
-            String md5Str = toHexString(digest);
-            appMd5.setText(md5Str);
+            if (signs != null && signs.length > 0) {
+                Signature sign = signs[0];
+                MessageDigest md5 = MessageDigest.getInstance("MD5");
+                md5.update(sign.toByteArray());
+                byte[] digest = md5.digest();
+                String md5Str = toHexString(digest);
+                appMd5.setText(md5Str);
+            } else {
+                Toast.makeText(ctx, "未获取到应用签名", Toast.LENGTH_LONG).show();
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
